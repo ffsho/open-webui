@@ -133,6 +133,36 @@ async def create_new_chat(form_data: ChatForm, user=Depends(get_verified_user)):
 
 
 ############################
+# GetLastChat
+############################
+
+
+@router.get("/last", response_model=Optional[ChatResponse])
+async def get_last_chat(user=Depends(get_verified_user)):
+    try:
+        # get last chat
+        chats = Chats.get_chat_list_by_user_id(
+            user_id=user.id,
+            include_archived=False,
+            filter=None,
+            skip=0,
+            limit=1
+        )
+        
+        if chats:
+            return ChatResponse(**chats[0].model_dump())
+        else:
+            new_chat = await create_new_chat(ChatForm(chat={}), user)
+            return new_chat
+            
+    except Exception as e:
+        log.exception(e)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_MESSAGES.DEFAULT()
+        )
+        
+        
+############################
 # ImportChat
 ############################
 
