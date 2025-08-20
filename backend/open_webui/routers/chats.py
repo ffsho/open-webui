@@ -140,7 +140,6 @@ async def create_new_chat(form_data: ChatForm, user=Depends(get_verified_user)):
 @router.get("/last", response_model=Optional[ChatResponse])
 async def get_last_chat(user=Depends(get_verified_user)):
     try:
-        # get last chat
         chats = Chats.get_chat_list_by_user_id(
             user_id=user.id,
             include_archived=False,
