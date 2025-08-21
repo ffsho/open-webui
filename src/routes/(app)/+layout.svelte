@@ -206,7 +206,7 @@
 						temporaryChatEnabled.set(!$temporaryChatEnabled);
 					}
 
-					await goto('/last');
+					await goto('/');
 					const newChatButton = document.getElementById('new-chat-button');
 					setTimeout(() => {
 						newChatButton?.click();

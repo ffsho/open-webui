@@ -50,7 +50,7 @@
 			await user.set(sessionUser);
 			await config.set(await getBackendConfig());
 
-			const redirectPath = querystringValue('redirect') || '/last';
+			const redirectPath = querystringValue('redirect') || '/';
 			goto(redirectPath);
 		}
 	};
@@ -153,7 +153,7 @@
 
 	onMount(async () => {
 		if ($user !== undefined) {
-			const redirectPath = querystringValue('redirect') || '/last';
+			const redirectPath = querystringValue('redirect') || '/';
 			goto(redirectPath);
 		}
 		await checkOauthCallback();
