@@ -171,4 +171,13 @@ class PromptsTable:
         except Exception:
             return False
         
+    def get_usage_count(self, command: str) -> Optional[int]:
+        try:    
+            with get_db() as db:
+                prompt = db.query(Prompt).filter_by(command=command).first()
+                return prompt.usage_count if prompt else None
+        except Exception:
+            return None
+
+
 Prompts = PromptsTable()
