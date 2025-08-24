@@ -86,6 +86,7 @@ from open_webui.routers import (
     users,
     utils,
     scim,
+    suggestions
 )
 
 from open_webui.routers.retrieval import (
@@ -1224,6 +1225,8 @@ app.include_router(models.router, prefix="/api/v1/models", tags=["models"])
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(prompts.router, prefix="/api/v1/prompts", tags=["prompts"])
 app.include_router(tools.router, prefix="/api/v1/tools", tags=["tools"])
+app.include_router(suggestions.router, prefix="/api/v1/suggestions", tags=["suggestions"])
+
 
 app.include_router(memories.router, prefix="/api/v1/memories", tags=["memories"])
 app.include_router(folders.router, prefix="/api/v1/folders", tags=["folders"])

@@ -1,3 +1,4 @@
+import uuid
 from typing import List, Optional
 
 from open_webui.internal.db import Base, get_db
@@ -12,14 +13,14 @@ from sqlalchemy import Column, Integer, String, Text
 class PromptSuggestion(Base):
     __tablename__ = "prompts_suggestions"
 
-    id = Column(Text, primary_key=True, autoincrement=True)
+    id = Column(Text, primary_key=True)
     title = Column(String)
     content = Column(Text)
     usage_count = Column(Integer, default=0)
 
 
 class PromptSuggestionModel(BaseModel):
-    id : str
+    id: str
     title: str
     content: str
     usage_count: int = 0
@@ -45,7 +46,7 @@ class PromptsSuggestionsTable:
         except Exception:
             return []
 
-    def get_suggestion_by_title(self, id: str) -> Optional[PromptSuggestionModel]:
+    def get_suggestion_by_id(self, id: str) -> Optional[PromptSuggestionModel]:
         try:
             with get_db() as db:
                 suggestion = db.query(PromptSuggestion).filter_by(id=id).first()
@@ -56,7 +57,9 @@ class PromptsSuggestionsTable:
     def add_suggestion(self, form_data: PromptSuggestionForm) -> Optional[PromptSuggestionModel]:
         try:
             with get_db() as db:
+                suggestion_id = str(uuid.uuid4())
                 suggestion = PromptSuggestion(
+                    id=suggestion_id,
                     title=form_data.title,
                     content=form_data.content,
                     usage_count=0
@@ -146,7 +149,9 @@ class PromptsSuggestionsTable:
                 for suggestion_data in default_suggestions:
                     existing = db.query(PromptSuggestion).filter_by(title=suggestion_data["title"]).first()
                     if not existing:
+                        suggestion_id = str(uuid.uuid4())
                         suggestion = PromptSuggestion(
+                            id=suggestion_id,
                             title=suggestion_data["title"],
                             content=suggestion_data["content"],
                             usage_count=0
