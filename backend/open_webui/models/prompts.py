@@ -5,7 +5,7 @@ from open_webui.internal.db import Base, get_db
 from open_webui.models.users import Users, UserResponse
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import BigInteger, Column, String, Text, JSON
+from sqlalchemy import Integer, BigInteger, Column, String, Text, JSON
 
 from open_webui.utils.access_control import has_access
 
@@ -23,6 +23,8 @@ class Prompt(Base):
     content = Column(Text)
     timestamp = Column(BigInteger)
 
+    usage_count = Column(Integer, default=0)
+    
     access_control = Column(JSON, nullable=True)  # Controls data access levels.
     # Defines access control rules for this entry.
     # - `None`: Public access, available to all users with the "user" role.
@@ -47,6 +49,8 @@ class PromptModel(BaseModel):
     title: str
     content: str
     timestamp: int  # timestamp in epoch
+
+    usage_count: int = 0
 
     access_control: Optional[dict] = None
     model_config = ConfigDict(from_attributes=True)
@@ -154,6 +158,26 @@ class PromptsTable:
                 return True
         except Exception:
             return False
+        
+    def increment_usage_count(self, command: str) -> bool:
+        try:
+            with get_db() as db:
+                prompt = db.query(Prompt).filter_by(command=command).first()
+                if prompt:
+                    prompt.usage_count += 1
+                    db.commit()
+                    return True
+                return False
+        except Exception:
+            return False
+        
+    def get_usage_count(self, command: str) -> Optional[int]:
+        try:    
+            with get_db() as db:
+                prompt = db.query(Prompt).filter_by(command=command).first()
+                return prompt.usage_count if prompt else None
+        except Exception:
+            return None
 
 
 Prompts = PromptsTable()

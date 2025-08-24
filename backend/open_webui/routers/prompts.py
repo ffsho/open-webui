@@ -160,3 +160,67 @@ async def delete_prompt_by_command(command: str, user=Depends(get_verified_user)
 
     result = Prompts.delete_prompt_by_command(f"/{command}")
     return result
+
+
+############################
+# Prompt Usage Count
+############################
+
+@router.get("/command/{command}/usage", response_model=int)
+async def get_prompt_usage_count(
+    command: str, 
+    user=Depends(get_verified_user)
+):
+    prompt = Prompts.get_prompt_by_command(f"/{command}")
+    
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ERROR_MESSAGES.NOT_FOUND,
+        )
+    
+    if (
+        user.role != "admin"
+        and prompt.user_id != user.id
+        and not has_access(user.id, "read", prompt.access_control)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
+        )
+    
+    return prompt.usage_count
+
+
+@router.post("/command/{command}/increment-usage", response_model=dict)
+async def increment_prompt_usage_count(
+    command: str, 
+    user=Depends(get_verified_user)
+):
+    prompt = Prompts.get_prompt_by_command(f"/{command}")
+    
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ERROR_MESSAGES.NOT_FOUND,
+        )
+    
+    if (
+        user.role != "admin"
+        and prompt.user_id != user.id
+        and not has_access(user.id, "read", prompt.access_control)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
+        )
+    
+    success = Prompts.increment_usage_count(f"/{command}")
+    
+    if success:
+        return {"message": "Usage count incremented", "new_count": prompt.usage_count + 1}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ERROR_MESSAGES.DEFAULT(),
+        )

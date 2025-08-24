@@ -1,4 +1,15 @@
 from logging.config import fileConfig
+# this need to add project root to sys, without it alembic can't migrate
+import sys
+from os.path import abspath, dirname
+
+project_root = dirname(dirname(dirname(abspath(__file__))))
+open_webui_path = dirname(abspath(__file__))
+backend_path = dirname(project_root)
+
+sys.path.insert(0, backend_path)
+sys.path.insert(0, project_root)
+sys.path.insert(0, open_webui_path)
 
 from alembic import context
 from open_webui.models.auths import Auth
