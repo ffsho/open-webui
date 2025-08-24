@@ -1,3 +1,57 @@
+[ЗАДАНИЕ]
+Скачать исходный код Open WebUI, реализовать счетчик использования предлагаемых промтов, реализовать метод API для отдачи значения счетчика.
+
+[ОСМЫСЛЕНИЕ]
+На главной странице под строкой ввода сообщений есть "default_prompt_suggestions", также есть сущность Prompts.
+
+[РЕАЛИЗОВАНО]
+Для Модели Prompts были добавлены поле usage_count и метод increment_prompt_usage_count. 
+Также был обновлен router 
+```python
+@router.post("/command/{command}/increment-usage", response_model=dict)
+async def increment_prompt_usage_count(
+    command: str, 
+    user=Depends(get_verified_user)
+):
+@router.get("/command/{command}/usage", response_model=int)
+async def get_prompt_usage_count(
+    command: str, 
+    user=Depends(get_verified_user)
+):
+```
+Для более полного выполнения также была реализована модель backend/open_webui/models/suggestions.py для таблицы prompt_suggestions, т.к. предложенные промпты не являлись никакой сущностью, а просто передавались в виде переменных
+
+```python
+class PromptSuggestion(Base):
+    __tablename__ = "prompts_suggestions"
+
+    id = Column(Text, primary_key=True)
+    title = Column(String)
+    content = Column(Text)
+    usage_count = Column(Integer, default=0)
+
+
+class PromptSuggestionModel(BaseModel):
+    id: str
+    title: str
+    content: str
+    usage_count: int = 0
+    model_config = ConfigDict(from_attributes=True)
+```
+И соответственно router со всеми необходимыми эндпоинтами
+
+[ПРОВЕРКА]
+Приложение разворачивалось по данной инструкции:
+https://docs.openwebui.com/getting-started/advanced-topics/development/
+
+проверка api производилась по localhost:8080/docs
+
+[МИГРАЦИИ]
+Были сделаны
+
+
+
+
 # Open WebUI 👋
 
 ![GitHub stars](https://img.shields.io/github/stars/open-webui/open-webui?style=social)
