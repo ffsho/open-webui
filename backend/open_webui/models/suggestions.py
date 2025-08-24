@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import List, Optional
 
 from open_webui.internal.db import Base, get_db
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Column, String, Text
+from sqlalchemy import Column, Integer, String, Text
 
 ####################
 # Prompts Suggestions DB Schema
@@ -14,11 +14,13 @@ class PromptSuggestion(Base):
 
     title = Column(String, primary_key=True)
     content = Column(Text)
+    usage_count = Column(Integer, default=0)
 
 
 class PromptSuggestionModel(BaseModel):
     title: str
     content: str
+    usage_count: int = 0
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -33,7 +35,7 @@ class PromptSuggestionForm(BaseModel):
 
 
 class PromptsSuggestionsTable:
-    def get_all_suggestions(self) -> list[PromptSuggestionModel]:
+    def get_all_suggestions(self) -> List[PromptSuggestionModel]:
         try:
             with get_db() as db:
                 suggestions = db.query(PromptSuggestion).all()
@@ -54,7 +56,8 @@ class PromptsSuggestionsTable:
             with get_db() as db:
                 suggestion = PromptSuggestion(
                     title=form_data.title,
-                    content=form_data.content
+                    content=form_data.content,
+                    usage_count=0
                 )
                 db.add(suggestion)
                 db.commit()
@@ -85,13 +88,32 @@ class PromptsSuggestionsTable:
         except Exception:
             return False
 
+    def get_usage_count(self, title: str) -> Optional[int]:
+        try:
+            with get_db() as db:
+                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                return suggestion.usage_count if suggestion else None
+        except Exception:
+            return None
+
+    def increment_usage_count(self, title: str) -> bool:
+        try:
+            with get_db() as db:
+                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                if suggestion:
+                    suggestion.usage_count += 1
+                    db.commit()
+                    return True
+                return False
+        except Exception:
+            return False
+
     def set_default_prompts_suggestions(self) -> None:
         try:
             with get_db() as db:
                 count = db.query(PromptSuggestion).count()
                 if count > 0:
                     return
-
                 default_suggestions = [
                     {
                         "title": "Help me study vocabulary for a college entrance exam",
@@ -124,7 +146,8 @@ class PromptsSuggestionsTable:
                     if not existing:
                         suggestion = PromptSuggestion(
                             title=suggestion_data["title"],
-                            content=suggestion_data["content"]
+                            content=suggestion_data["content"],
+                            usage_count=0
                         )
                         db.add(suggestion)
                 
