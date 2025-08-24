@@ -12,12 +12,14 @@ from sqlalchemy import Column, Integer, String, Text
 class PromptSuggestion(Base):
     __tablename__ = "prompts_suggestions"
 
-    title = Column(String, primary_key=True)
+    id = Column(Text, primary_key=True, autoincrement=True)
+    title = Column(String)
     content = Column(Text)
     usage_count = Column(Integer, default=0)
 
 
 class PromptSuggestionModel(BaseModel):
+    id : str
     title: str
     content: str
     usage_count: int = 0
@@ -43,10 +45,10 @@ class PromptsSuggestionsTable:
         except Exception:
             return []
 
-    def get_suggestion_by_title(self, title: str) -> Optional[PromptSuggestionModel]:
+    def get_suggestion_by_title(self, id: str) -> Optional[PromptSuggestionModel]:
         try:
             with get_db() as db:
-                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                suggestion = db.query(PromptSuggestion).filter_by(id=id).first()
                 return PromptSuggestionModel.model_validate(suggestion) if suggestion else None
         except Exception:
             return None
@@ -66,10 +68,10 @@ class PromptsSuggestionsTable:
         except Exception:
             return None
 
-    def update_suggestion(self, title: str, form_data: PromptSuggestionForm) -> Optional[PromptSuggestionModel]:
+    def update_suggestion(self, id: str, form_data: PromptSuggestionForm) -> Optional[PromptSuggestionModel]:
         try:
             with get_db() as db:
-                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                suggestion = db.query(PromptSuggestion).filter_by(id=id).first()
                 if suggestion:
                     suggestion.title = form_data.title
                     suggestion.content = form_data.content
@@ -79,27 +81,27 @@ class PromptsSuggestionsTable:
         except Exception:
             return None
 
-    def delete_suggestion(self, title: str) -> bool:
+    def delete_suggestion(self, id: str) -> bool:
         try:
             with get_db() as db:
-                db.query(PromptSuggestion).filter_by(title=title).delete()
+                db.query(PromptSuggestion).filter_by(id=id).delete()
                 db.commit()
                 return True
         except Exception:
             return False
 
-    def get_usage_count(self, title: str) -> Optional[int]:
+    def get_usage_count(self, id: str) -> Optional[int]:
         try:
             with get_db() as db:
-                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                suggestion = db.query(PromptSuggestion).filter_by(id=id).first()
                 return suggestion.usage_count if suggestion else None
         except Exception:
             return None
 
-    def increment_usage_count(self, title: str) -> bool:
+    def increment_usage_count(self, id: str) -> bool:
         try:
             with get_db() as db:
-                suggestion = db.query(PromptSuggestion).filter_by(title=title).first()
+                suggestion = db.query(PromptSuggestion).filter_by(id=id).first()
                 if suggestion:
                     suggestion.usage_count += 1
                     db.commit()
